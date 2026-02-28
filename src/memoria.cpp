@@ -36,13 +36,13 @@ int Memoria::getTamanho(){ return tamanho; }
 int& Memoria::acessoPonteiro(int pos){
     if(pos > -1 && pos < tamanho)
         return ponteiroRelogio[pos];
-    throw std::out_of_range("Indice de memória fora dos limites! (ponteiro)");
+    throw std::out_of_range("Indice de memória fora dos limites! (ponteiro)\npos =" + std::to_string(pos) + "\ntamanho = " + std::to_string(tamanho) + "\nconjuntos = " + std::to_string(conjuntos));
 }
 
 BlocoMemoria& Memoria::acessoDado(int pos){
     if(pos > -1 && pos < tamanho)
         return memoria[pos];
-    throw std::out_of_range("Indice de memória do dado fora dos limites!\npos =" + std::to_string(pos) + "\ntamanho = " + std::to_string(tamanho) + "\nConjuntos = " + std::to_string(conjuntos));
+    throw std::out_of_range("Indice de memória do dado fora dos limites!\npos =" + std::to_string(pos) + "\ntamanho = " + std::to_string(tamanho) + "\nconjuntos = " + std::to_string(conjuntos));
 }
 
 int Memoria::vitima(int indiceConjunto){

@@ -13,5 +13,5 @@ using bloco_memoria::BlocoMemoria;
 BlocoMemoria& RAM::acessoDado(int pos){
     if(pos > -1 && pos < tamanho)
         return memoria[pos];
-    throw std::out_of_range("Indice de memória fora dos limites! (dado, RAM)");
+    throw std::out_of_range("RAM: Indice de memória fora dos limites! (dado, RAM)");
 }
