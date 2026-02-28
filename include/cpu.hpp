@@ -32,10 +32,12 @@ namespace Processador
     {
     private:
         std::vector<std::reference_wrapper<Instrucao>> programa;
-        int PC;
+        std::vector<std::reference_wrapper<Instrucao>> interrup;
+        vector<int> pilhaPC;
         numInst opcode;
         long long custo;
         double tempoExecucao;
+        int inter;
 
     public:
         int hit[3] = {0, 0, 0};
@@ -49,6 +51,7 @@ namespace Processador
 
         CPU();
         void setPrograma(std::vector<std::reference_wrapper<Instrucao>> programaAux);
+        void setInterrup(vector<reference_wrapper<Instrucao>> programaAux);
         void iniciar(Memoria::RAM &ram, int tamC1, int tamC2, int tamC3);
         void imprimirResumo();
     };

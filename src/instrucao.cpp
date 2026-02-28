@@ -10,18 +10,16 @@
 using namespace std;
 using namespace Processador;
 
-#define ARQ "instrucoes.txt"
-
 namespace INSTRUCAO
 {
-    vector<Instrucao> montarInstrucoesProgramaAleatorioRepeticoes()
+    vector<Instrucao> montarInstrucoesProgramaAleatorioRepeticoes(std::string arq)
     {
         // Crio o vetor programa reservando 10000 instruções
         vector<Instrucao> programa;
         programa.reserve(10000);
         // abrir arquivo
         ifstream instrucoes;
-        instrucoes.open(ARQ);
+        instrucoes.open(arq);
         if (!instrucoes.is_open()) {
             throw std::runtime_error("Erro ao abrir o arquivo!\n");
         }

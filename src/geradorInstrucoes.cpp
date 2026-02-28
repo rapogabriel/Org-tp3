@@ -5,9 +5,9 @@
 #include "geradorInstrucoes.hpp"
 
 using namespace std;
-void gerarInstrucao(int repeticoes, int tamFor, int numIns, int tamMem) {
+void gerarInstrucao(int repeticoes, int tamFor, int numIns, int tamMem, std::string arquivo) {
     ofstream instrucoes;
-	instrucoes.open("instrucoes.txt");
+	instrucoes.open(arquivo);
 
 	vector<vector<int> > vetor; vetor.clear();
 	vector<int> aux; aux.clear();

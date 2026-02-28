@@ -13,7 +13,7 @@ namespace INSTRUCAO{
             numInst opcode;
     };
     std::vector<Instrucao> montarInstrucoesProgramaAleatorio(int quantInstrucoes, int tamanhoMemoria);
-    std::vector<Instrucao> montarInstrucoesProgramaAleatorioRepeticoes();
+    std::vector<Instrucao> montarInstrucoesProgramaAleatorioRepeticoes(std::string arq);
     
 }
 #endif

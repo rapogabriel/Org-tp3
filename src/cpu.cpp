@@ -3,6 +3,9 @@
 #include <iomanip>
 #include <chrono>
 #include <vector>
+#include <cstdlib>
+#include <thread>
+#include <chrono>
 #include "ram.hpp"
 #include "instrucao.hpp"
 #include "cpu.hpp"
@@ -10,6 +13,16 @@
 
 using namespace std;
 using INSTRUCAO::Instrucao;
+
+#define Programa vector<reference_wrapper<Instrucao>>
+
+#define MAXINTER 10000 // Quantidade maxima de interrupcoes que pode acontecer
+
+// Porcentagem de acontecer uma interrupcao apos uma instrucao
+#define PORCENTOBASE 5 // Durante o programa principal
+#define PORCENTOSIMULTANEO 1 // Durante outra interrupcao
+
+#define MAXSIMULTANEOS 5 // Quantidade maxima de programas na pilha de execucao
 
 namespace Processador
 {
@@ -41,12 +54,17 @@ namespace Processador
     {
         hit[0] = hit[1] = hit[2] = 0;
         miss[0] = miss[1] = miss[2] = 0;
-        PC = 0;
+        pilhaPC.push_back(0);
     }
 
     void CPU::setPrograma(vector<reference_wrapper<Instrucao>> programaAux)
     {
         programa = programaAux;
+    }
+
+    void CPU::setInterrup(vector<reference_wrapper<Instrucao>> programaAux)
+    {
+        interrup = programaAux;
     }
 
     // RELATÓRIO FINAL
@@ -119,6 +137,7 @@ namespace Processador
         cout << "\n[RESUMO DE CUSTO E TEMPO]\n";
         cout << "  -> Custo Total (Ciclos):   " << custo << "\n";
         cout << "  -> Tempo Real de Execucao: " << fixed << setprecision(6) << tempoExecucao << " segundos\n";
+        cout << "  -> Quantidade de interrupcoes: " << inter << "\n";
         cout << "==========================================================================================\n";
     }
 
@@ -133,12 +152,19 @@ namespace Processador
         hit[0] = hit[1] = hit[2] = 0;
         miss[0] = miss[1] = miss[2] = 0;
         custo = 0;
-        PC = 0;
+
+        inter = 0;
+
+        bool pularIncremento;
 
         auto inicioRelogio = chrono::high_resolution_clock::now();
 
-        for (Instrucao &inst : programa)
-        {
+        while (!pilhaPC.empty()) {
+            reference_wrapper<Programa> programaAtual = pilhaPC.size() > 1 ? std::ref(interrup) : std::ref(programa);
+            Instrucao& inst = programaAtual.get()[pilhaPC.back()].get();
+            pularIncremento = false;
+
+            if(pilhaPC.back())
             if (inst.opcode != HALT)
             {
                 registrador1 = mmu::buscarNasMemorias(inst.add1, ram, cache, *this);
@@ -150,16 +176,23 @@ namespace Processador
             {
             case HALT:
             {
-                cout << "-> \nDRENANDO CACHE\n";
-                mmu::drenarCache(cache, ram);
-                cout << "\n PROCESSAMENTO FINALIZADO \n";
+                pilhaPC.pop_back();
+                pularIncremento = true;
+                if(pilhaPC.size() == 0){
+                    cout << "-> \nDRENANDO CACHE\n";
+                    mmu::drenarCache(cache, ram);
+                    cout << "\n PROCESSAMENTO FINALIZADO \n";
 
-                auto fimRelogio = chrono::high_resolution_clock::now();
-                chrono::duration<double> duracao = fimRelogio - inicioRelogio;
-                tempoExecucao = duracao.count();
-
-                imprimirResumo();
-                return;
+                    auto fimRelogio = chrono::high_resolution_clock::now();
+                    chrono::duration<double> duracao = fimRelogio - inicioRelogio;
+                    tempoExecucao = duracao.count();
+                    imprimirResumo();
+                    break;
+                }
+                else{
+                    cout << "FINALIZANDO INTERRUPCAO..." << endl;
+                    break;
+                }
             }
 
             case SOMA:
@@ -170,7 +203,7 @@ namespace Processador
                 registrador3.atualizado = true;
                 custo += registrador1.custo + registrador2.custo + registrador3.custo;
 
-                cout << "\nInstrucao: SOMA\nCusto acumulado: " << custo << "\n";
+                cout << "\nInstrucao " << pilhaPC.back() << ": SOMA\nCusto acumulado: " << custo << endl;
                 break;
 
             case SUB:
@@ -181,8 +214,18 @@ namespace Processador
                 registrador3.atualizado = true;
                 custo += registrador1.custo + registrador2.custo + registrador3.custo;
 
-                cout << "\nInstrucao: SUB\nCusto acumulado: " << custo << "\n";
+                cout << "\nInstrucao " << pilhaPC.back() << ": SUB\nCusto acumulado: " << custo << endl;
                 break;
+            }
+            if(!pilhaPC.empty()){
+                if(!pularIncremento)
+                    ++pilhaPC.back();
+                if(inter < MAXINTER && ((rand() % 100) < (pilhaPC.size() == 1 ? PORCENTOBASE : pilhaPC.size() < MAXSIMULTANEOS ? PORCENTOSIMULTANEO : 0))){
+                    pilhaPC.push_back(0);
+                    cout << "LIDANDO COM INTERRUPCAO " << pilhaPC.size()-1 <<"..." << endl;
+                    ++inter;
+                    //this_thread::sleep_for(chrono::seconds(1));
+                }
             }
         }
     }

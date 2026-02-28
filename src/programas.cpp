@@ -22,13 +22,18 @@ namespace Programas
 {
     void programaAleatorioRepeticoes(RAM &ram, CPU &cpu, const vector<int>& TamLs) {
         ram.criarRAM_aleatoria(1000);
-        vector<Instrucao> programa = montarInstrucoesProgramaAleatorioRepeticoes();
+        vector<Instrucao> programa = montarInstrucoesProgramaAleatorioRepeticoes("instrucoes.txt");
+        vector<Instrucao> interrup = montarInstrucoesProgramaAleatorioRepeticoes("interrup.txt");
         vector<reference_wrapper<Instrucao>> programaAPassar;
+        vector<reference_wrapper<Instrucao>> interrupAPassar;
 
         for (auto &item : programa)
             programaAPassar.push_back(ref(item));
+        for (auto &item : interrup)
+            interrupAPassar.push_back(ref(item));
 
         cpu.setPrograma(programaAPassar);
+        cpu.setInterrup(interrupAPassar);
 
         cpu.iniciar(ram, TamLs[0], TamLs[1], TamLs[2]);
     }
