@@ -10,9 +10,9 @@
 #include "cpu.hpp"
 #include "ram.hpp"
 #include "enum.hpp"
+#include "fs.hpp"
 
 using namespace std;
-using Memoria::RAM;
 using Processador::CPU;
 using namespace INSTRUCAO;
 
@@ -20,8 +20,9 @@ using enum numInst;
 
 namespace Programas
 {
-    void programaAleatorioRepeticoes(RAM &ram, CPU &cpu, const vector<int>& TamLs) {
-        ram.criarRAM_aleatoria(1000);
+    void programaAleatorioRepeticoes(RAM &ram, CPU &cpu, const vector<int>& TamLs, unsigned int TAMRAM, unsigned int TAMMEM) {
+        ram.inicializar(TAMRAM);
+        FileSystem::criaMemoria_Aleatoria(TAMMEM);
         vector<Instrucao> programa = montarInstrucoesProgramaAleatorioRepeticoes("instrucoes.txt");
         vector<Instrucao> interrup = montarInstrucoesProgramaAleatorioRepeticoes("interrup.txt");
         vector<reference_wrapper<Instrucao>> programaAPassar;
@@ -39,7 +40,7 @@ namespace Programas
     }
     void programaAleatorio(RAM &ram, CPU &cpu, int memoria, int qtdInstrucoes)
     {
-        ram.criarRAM_aleatoria(memoria);
+        ram.inicializar(memoria);
         vector<Instrucao> programa = montarInstrucoesProgramaAleatorio(qtdInstrucoes, memoria);
         vector<reference_wrapper<Instrucao>> programaAPassar;
 

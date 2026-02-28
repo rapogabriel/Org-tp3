@@ -4,18 +4,10 @@
 #include "cpu.hpp"
 #include "programas.hpp"
 #include "geradorInstrucoes.hpp"
+#include "config.hpp"
 
-using Memoria::RAM;
 using Processador::CPU;
-using namespace Programas;
-
-#define TAMC1 64
-#define TAMC2 128
-#define TAMC3 256
-#define REPS 90
-#define TAMFOR 10
-#define NUMINST 10000
-#define TAMMEM 1000
+using namespace Config;
 
 int main()
 {
@@ -29,7 +21,7 @@ int main()
         TamLs.push_back(TAMC3);
         gerarInstrucao(REPS, TAMFOR, NUMINST, TAMMEM, "instrucoes.txt");
         gerarInstrucao(REPS, TAMFOR, 100, TAMMEM, "interrup.txt");
-        programaAleatorioRepeticoes(ram, cpu, TamLs);
+        Programas::programaAleatorioRepeticoes(ram, cpu, TamLs, TAMRAM, TAMMEM);
     }
     catch (const std::exception &e)
     {

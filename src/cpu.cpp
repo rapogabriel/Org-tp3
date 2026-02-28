@@ -10,50 +10,20 @@
 #include "instrucao.hpp"
 #include "cpu.hpp"
 #include "mmu.hpp"
+#include "config.hpp"
 
 using namespace std;
 using INSTRUCAO::Instrucao;
+using namespace Config;
 
 #define Programa vector<reference_wrapper<Instrucao>>
-
-#define MAXINTER 10000 // Quantidade maxima de interrupcoes que pode acontecer
-
-// Porcentagem de acontecer uma interrupcao apos uma instrucao
-#define PORCENTOBASE 5 // Durante o programa principal
-#define PORCENTOSIMULTANEO 1 // Durante outra interrupcao
-
-#define MAXSIMULTANEOS 5 // Quantidade maxima de programas na pilha de execucao
 
 namespace Processador
 {
     using enum numInst;
 
-    void cache::iniciarCache(int tam)
-    {
-        memoria = make_unique<bloco_memoria::BlocoMemoria[]>(tam);
-        tamanho = tam;
-
-        // Inicializa linhas
-        for (int i = 0; i < tam; ++i)
-        {
-            memoria[i].endBloco = -1;
-            memoria[i].bitUso = false;
-            memoria[i].atualizado = false;
-            memoria[i].cacheHit = 0;
-            memoria[i].custo = 0;
-        }
-
-        // CLOCK por conjunto (Second Chance)
-        int sets = tam / 4; // VIAS = 4
-        ponteiroRelogio = make_unique<int[]>(sets);
-        for (int i = 0; i < sets; i++)
-            ponteiroRelogio[i] = 0;
-    }
-
     CPU::CPU() : custo(0), tempoExecucao(0.0), cache(make_unique<Processador::cache[]>(3))
     {
-        hit[0] = hit[1] = hit[2] = 0;
-        miss[0] = miss[1] = miss[2] = 0;
         pilhaPC.push_back(0);
     }
 
@@ -68,20 +38,8 @@ namespace Processador
     }
 
     // RELATÓRIO FINAL
-    void CPU::imprimirResumo()
+    void CPU::imprimirResumo(RAM &ram)
     {
-        int totalL1 = hit[0] + miss[0];
-        int totalL2 = hit[1] + miss[1];
-        int totalL3 = hit[2] + miss[2];
-
-        float taxL1_H = (totalL1 > 0) ? (float)hit[0] / totalL1 * 100 : 0.0f;
-        float taxL1_M = (totalL1 > 0) ? (float)miss[0] / totalL1 * 100 : 0.0f;
-
-        float taxL2_H = (totalL2 > 0) ? (float)hit[1] / totalL2 * 100 : 0.0f;
-        float taxL2_M = (totalL2 > 0) ? (float)miss[1] / totalL2 * 100 : 0.0f;
-
-        float taxL3_H = (totalL3 > 0) ? (float)hit[2] / totalL3 * 100 : 0.0f;
-        float taxL3_M = (totalL3 > 0) ? (float)miss[2] / totalL3 * 100 : 0.0f;
 
         const int W_NOME = 10;
         const int W_NUM = 12;
@@ -102,35 +60,27 @@ namespace Processador
 
         cout << "------------------------------------------------------------------------------------------\n";
 
-        // L1
-        cout << left << setw(W_NOME) << "Cache L1"
-             << right << setw(W_NUM) << cache[0].tamanho
-             << right << setw(W_NUM) << hit[0]
-             << right << setw(W_NUM) << miss[0]
-             << right << setw(W_NUM) << totalL1
-             << fixed << setprecision(2)
-             << right << setw(W_TAXA - 2) << taxL1_H << "% "
-             << right << setw(W_TAXA - 2) << taxL1_M << "% "
-             << "\n";
+        // Caches
+        for(int i = 0; i < 3; ++i){
+            cout << left << setw(W_NOME) << "Cache L" << i+1
+                 << right << setw(W_NUM) << cache[i].getTamanho()
+                 << right << setw(W_NUM) << cache[i].hit
+                 << right << setw(W_NUM) << cache[i].miss
+                 << right << setw(W_NUM) << cache[i].hit+cache[i].miss
+                 << fixed << setprecision(2)
+                 << right << setw(W_TAXA - 2) << cache[i].getHitRate() * 100 << "% "
+                 << right << setw(W_TAXA - 2) << cache[i].getHitRate() * 100 << "% "
+                 << "\n";
+        }
 
-        // L2
-        cout << left << setw(W_NOME) << "Cache L2"
-             << right << setw(W_NUM) << cache[1].tamanho
-             << right << setw(W_NUM) << hit[1]
-             << right << setw(W_NUM) << miss[1]
-             << right << setw(W_NUM) << totalL2
-             << right << setw(W_TAXA - 2) << taxL2_H << "% "
-             << right << setw(W_TAXA - 2) << taxL2_M << "% "
-             << "\n";
-
-        // L3
-        cout << left << setw(W_NOME) << "Cache L3"
-             << right << setw(W_NUM) << cache[2].tamanho
-             << right << setw(W_NUM) << hit[2]
-             << right << setw(W_NUM) << miss[2]
-             << right << setw(W_NUM) << totalL3
-             << right << setw(W_TAXA - 2) << taxL3_H << "% "
-             << right << setw(W_TAXA - 2) << taxL3_M << "% "
+        // RAM
+        cout << left << setw(W_NOME+1) << "RAM"
+             << right << setw(W_NUM) << ram.getTamanho()
+             << right << setw(W_NUM) << ram.hit
+             << right << setw(W_NUM) << ram.miss
+             << right << setw(W_NUM) << ram.hit+ram.miss
+             << right << setw(W_TAXA - 2) << ram.getHitRate() * 100 << "% "
+             << right << setw(W_TAXA - 2) << ram.getMissRate() * 100 << "% "
              << "\n";
 
         cout << "------------------------------------------------------------------------------------------\n";
@@ -141,16 +91,14 @@ namespace Processador
         cout << "==========================================================================================\n";
     }
 
-    void CPU::iniciar(Memoria::RAM &ram, int tamC1, int tamC2, int tamC3)
+    void CPU::iniciar(RAM &ram, int tamC1, int tamC2, int tamC3)
     {
         // Inicia caches
-        cache[0].iniciarCache(tamC1);
-        cache[1].iniciarCache(tamC2);
-        cache[2].iniciarCache(tamC3);
+        cache[0].inicializar(tamC1);
+        cache[1].inicializar(tamC2);
+        cache[2].inicializar(tamC3);
 
         // Reset contadores
-        hit[0] = hit[1] = hit[2] = 0;
-        miss[0] = miss[1] = miss[2] = 0;
         custo = 0;
 
         inter = 0;
@@ -167,9 +115,9 @@ namespace Processador
             if(pilhaPC.back())
             if (inst.opcode != HALT)
             {
-                registrador1 = mmu::buscarNasMemorias(inst.add1, ram, cache, *this);
-                registrador2 = mmu::buscarNasMemorias(inst.add2, ram, cache, *this);
-                registrador3 = mmu::buscarNasMemorias(inst.add3, ram, cache, *this);
+                registrador1 = mmu::buscarNasMemorias(inst.add1, ram, cache);
+                registrador2 = mmu::buscarNasMemorias(inst.add2, ram, cache);
+                registrador3 = mmu::buscarNasMemorias(inst.add3, ram, cache);
             }
 
             switch (inst.opcode)
@@ -180,13 +128,17 @@ namespace Processador
                 pularIncremento = true;
                 if(pilhaPC.size() == 0){
                     cout << "-> \nDRENANDO CACHE\n";
-                    mmu::drenarCache(cache, ram);
+                    vector<reference_wrapper<Memoria>> hierarquia;
+                    for(int i = 0; i < 3; ++i)
+                        hierarquia.push_back(ref(cache[i]));
+                    hierarquia.push_back(ref(ram));
+                    mmu::drenar(hierarquia);
                     cout << "\n PROCESSAMENTO FINALIZADO \n";
 
                     auto fimRelogio = chrono::high_resolution_clock::now();
                     chrono::duration<double> duracao = fimRelogio - inicioRelogio;
                     tempoExecucao = duracao.count();
-                    imprimirResumo();
+                    imprimirResumo(ram);
                     break;
                 }
                 else{

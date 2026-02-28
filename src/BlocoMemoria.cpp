@@ -43,7 +43,8 @@ namespace bloco_memoria
 
     std::ostream &operator<<(std::ostream &os, const BlocoMemoria &imprimir)
     {
-        os << "Bloco: " << imprimir.endBloco;
+        for(int i = 0; i < 4; ++i)
+            os << imprimir.palavras[i] << " ";
         return os;
     }
 }
