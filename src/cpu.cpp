@@ -69,7 +69,7 @@ namespace Processador
                  << right << setw(W_NUM) << cache[i].hit+cache[i].miss
                  << fixed << setprecision(2)
                  << right << setw(W_TAXA - 2) << cache[i].getHitRate() * 100 << "% "
-                 << right << setw(W_TAXA - 2) << cache[i].getHitRate() * 100 << "% "
+                 << right << setw(W_TAXA - 2) << cache[i].getMissRate() * 100 << "% "
                  << "\n";
         }
 
