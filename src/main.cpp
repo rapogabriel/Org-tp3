@@ -20,7 +20,7 @@ int main()
         TamLs.push_back(TAMC2);
         TamLs.push_back(TAMC3);
         gerarInstrucao(REPS, TAMFOR, NUMINST, TAMMEM, "instrucoes.txt");
-        gerarInstrucao(REPS, TAMFOR, 100, TAMMEM, "interrup.txt");
+        gerarInstrucao(REPS_INT, TAMFOR_INT, NUMINST_INT, TAMMEM, "interrup.txt");
         Programas::programaAleatorioRepeticoes(ram, cpu, TamLs, TAMRAM, TAMMEM);
     }
     catch (const std::exception &e)
