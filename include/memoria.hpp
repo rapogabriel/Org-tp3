@@ -20,7 +20,7 @@ class Memoria{
         void inicializar(int tam);
         void imprimir();
         int getTamanho();
-        int& acessoPonteiro(int pos);
+        virtual int& acessoPonteiro(int pos);
         virtual BlocoMemoria& acessoDado(int pos);
         int vitima(int indiceConjunto);
         const int& getConjuntos() const;

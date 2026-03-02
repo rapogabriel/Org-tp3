@@ -6,6 +6,7 @@
 using namespace std;
 class RAM : public Memoria{
     BlocoMemoria& acessoDado(int pos) override;
+    int& acessoPonteiro(int pos) override;
 };
 
 #endif
