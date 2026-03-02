@@ -4,6 +4,7 @@
 #include "fs.hpp"
 #include <iostream>
 #include <cstdlib>
+#include <stdexcept>
 
 using namespace Config;
 using bloco_memoria::BlocoMemoria;
@@ -63,7 +64,7 @@ void mmu::promoverBloco(BlocoMemoria bloco, int nivelOrigem,
         {
             blocoSubindo.bitUso = true;
         }
-
+        
         nivel.acessoDado(idx) = blocoSubindo;
 
         // Se houve substituição, o bloco removido desce na hierarquia
@@ -148,6 +149,24 @@ void mmu::drenar(vector<reference_wrapper<Memoria>> &hierarquia)
                 // Após salvar na RAM, o bloco deixa de estar "sujo"
                 bloco.atualizado = false;
             }
+        }
+    }
+}
+
+void mmu::armazena(const bloco_memoria::BlocoMemoria& add,
+                    unique_ptr<Processador::cache[]> &caches){
+    const int& enderecoBloco = add.endBloco;
+    if(enderecoBloco < 0)
+        throw std::out_of_range("Invalido endereco de bloco no armazena: " + std::to_string(enderecoBloco));
+    Memoria& nivel = caches[0];
+    int sets = nivel.getConjuntos();
+    int inicio = (enderecoBloco % sets) * VIAS;
+    for (int i = inicio; i < inicio + VIAS; ++i){
+        BlocoMemoria& bloco = nivel.acessoDado(i);
+        if (bloco.endBloco == enderecoBloco){
+            for(int j = 0; i < 4; ++i)
+                nivel.acessoDado(i).palavras[j] = add.palavras[j];
+            nivel.acessoDado(i).atualizado = true;
         }
     }
 }

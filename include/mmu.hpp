@@ -18,6 +18,10 @@ public:
     static void drenar(
         vector<reference_wrapper<Memoria>> &hierarquia
         );
+    static void armazena(
+        const bloco_memoria::BlocoMemoria& add,
+        unique_ptr<Processador::cache[]> &caches
+        );
 
 private:
    

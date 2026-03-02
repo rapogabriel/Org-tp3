@@ -153,7 +153,9 @@ namespace Processador
                     registrador2.palavras[inst.add2.endPalavra];
 
                 registrador3.atualizado = true;
+                registrador3.endBloco = inst.add3.endBloco;
                 custo += registrador1.custo + registrador2.custo + registrador3.custo;
+                mmu::armazena(registrador3, cache);
 
                 cout << "\nInstrucao " << pilhaPC.back() << ": SOMA\nCusto acumulado: " << custo << endl;
                 break;
@@ -164,7 +166,9 @@ namespace Processador
                     registrador2.palavras[inst.add2.endPalavra];
 
                 registrador3.atualizado = true;
+                registrador3.endBloco = inst.add3.endBloco;
                 custo += registrador1.custo + registrador2.custo + registrador3.custo;
+                mmu::armazena(registrador3, cache);
 
                 cout << "\nInstrucao " << pilhaPC.back() << ": SUB\nCusto acumulado: " << custo << endl;
                 break;
