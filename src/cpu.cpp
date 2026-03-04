@@ -4,6 +4,7 @@
 #include <chrono>
 #include <vector>
 #include <cstdlib>
+#include <ctime>
 #include <thread>
 #include <chrono>
 #include "ram.hpp"
@@ -97,6 +98,8 @@ namespace Processador
         cache[0].inicializar(tamC1);
         cache[1].inicializar(tamC2);
         cache[2].inicializar(tamC3);
+
+        srand(time(NULL));
 
         // Reset contadores
         custo = 0;
