@@ -127,26 +127,26 @@ BlocoMemoria mmu::buscarNasMemorias(bloco_memoria::Endereco add, RAM &ram,
 }
 void mmu::drenar(vector<reference_wrapper<Memoria>> &hierarquia)
 {
-    // Percorre todos os níveis de cache (L1, L2 e L3)
+    // Percorre todos os níveis de cache (L1, L2 e L3) e RAM
     for (int nivel = 0; nivel < 4; ++nivel)
     {
         // Cache correspondente ao nível atual
         Memoria &atual = hierarquia[nivel].get();
 
-        // Percorre todas as posições da cache usando o tamanho definido dinamicamente
+        // Percorre todas as posições da memoria atual usando o tamanho definido dinamicamente
         for (int i = 0; i < atual.getTamanho(); ++i)
         {
-            // Bloco armazenado na posição atual da cache
+            // Bloco armazenado na posição atual
             BlocoMemoria &bloco = atual.acessoDado(i);
 
             // Se o bloco existe (endBloco != -1) e foi modificado,
-            // então ele precisa ser escrito de volta na RAM
+            // então ele precisa ser escrito de volta na memoria secundaria
             if (bloco.endBloco != -1 && bloco.atualizado)
             {
-                // Write-back: grava o conteúdo atualizado do bloco na memória principal
+                // Write-back: grava o conteúdo atualizado do bloco na memória secundaria
                 FileSystem::setDado(bloco);
 
-                // Após salvar na RAM, o bloco deixa de estar "sujo"
+                // Após salvar na memória secundaria, o bloco deixa de estar "sujo"
                 bloco.atualizado = false;
             }
         }
