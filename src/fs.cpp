@@ -55,7 +55,7 @@ bloco_memoria::BlocoMemoria FileSystem::buscaDado(unsigned int endBloco){
 }
 
 void FileSystem::setDado(bloco_memoria::BlocoMemoria bloco){
-    std::ofstream arquivo(std::string(nomeArquivo), std::ios::binary);
+    std::ofstream arquivo(std::string(nomeArquivo), std::ios::binary | std::ios::in | std::ios::out);
     if(arquivo.is_open()){
         int pos = bloco.endBloco * 4;
         std::streampos deslocamento = pos * sizeof(int);

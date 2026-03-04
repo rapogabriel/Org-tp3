@@ -112,7 +112,6 @@ namespace Processador
             Instrucao& inst = programaAtual.get()[pilhaPC.back()].get();
             pularIncremento = false;
 
-            if(pilhaPC.back())
             if (inst.opcode != HALT)
             {
                 registrador1 = mmu::buscarNasMemorias(inst.add1, ram, cache);
